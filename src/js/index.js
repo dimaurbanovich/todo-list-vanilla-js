@@ -1,46 +1,93 @@
 import '../styles/main.css';
 import { ID } from './utils';
 
-console.log(ID());
 
 let $input = document.querySelector('#js-insert');
-let $taskTable = document.querySelector("#js-list")
+let $taskTable = document.querySelector("#js-list");
+let $counter = document.querySelector("#js-total");
 
-let tasks = ["Buy", "somes", "drinks"];
+let tasks = [ 
+    {text: "Buy", completed: false, id: ID()}, 
+    {text: "some", completed: true, id: ID()},
+    {text: "drinks", completed: false, id: ID()},
+];
 
 const renderTasksList = (list) => {
+    $counter.innerHTML =  `${list.length} items left ` ;
     $taskTable.innerHTML = '';
-    list.forEach((task, index) => {
-        // console.log(index, index % 2 === 0 ? 'чет' : className);
-        let className = '';
-        if(index % 2 !== 0) {
-            className = 'class = "completed"'
+    list.forEach((task) => {
+        const checked = task.completed ? 'checked' : '';
+
+        const liTask = document.createElement('li');
+        liTask.id = task.id;
+        if(task.completed) {
+            liTask.classList.add('completed');
         }
-        let listElement = `<li ${className}>
+
+        liTask.innerHTML = `
+        <input ${checked} data-id="${task.id}" type="checkbox" class="toggle">
         <div class="todo">
-        <input type="checkbox" class="toggle">
-        <span>${task}</span>
-        <button class="destroy"></button>
+        
+        <span>${task.text}</span>
+        
         </div>
-        <input type="text" class="edit"></li>`;
-        $taskTable.insertAdjacentHTML("beforeend", listElement)
+        <button data-value="${task.id}" class="destroy"></button>`
+
+        liTask.addEventListener('dblclick', () => {
+            liTask.classList.add('editing');
+        })
+
+        const editTask = document.createElement('input');
+        editTask.type = "text";
+        editTask.className = "edit";
+        editTask.value = task.text;
+        editTask.addEventListener('keyup', (event) => {
+            if (event.key === 'Escape') {
+                liTask.classList.remove('editing');
+            }
+            if (event.key === "Enter") {
+                liTask.classList.remove('editing');
+                task.text = editTask.value
+                renderTasksList(list);
+            }
+        });
+
+        liTask.append(editTask);
+        $taskTable.append(liTask);
+        
     });
 }
 
 $input.addEventListener('keyup', (event) => {
-   if (event.which === 13) {
-    tasks.push($input.value)
-    $input.value = "";
-    console.log('tasks: ', tasks);   
+   if (event.key === 'Enter') {
+    tasks.push( {text: $input.value, completed: false, id: ID()} );
+    $input.value = ""; 
     renderTasksList(tasks); 
+
    }
   
 });
 
 renderTasksList(tasks);
 
+function deleteComplete(event) {
+    const deleteBtn = event.target;
+    if(deleteBtn.classList.contains('destroy')) {
+        const deleteId = deleteBtn.dataset.value;
+        tasks = tasks.filter(task => task.id !== deleteId);
+        renderTasksList(tasks);
+    }
+
+    const completeBtn = event.target;
+    if(completeBtn.classList.contains('toggle')) {
+        const changeId = completeBtn.dataset.id;
+        const task = tasks.find((el) => {
+            return el.id === changeId;
+        });
+        task.completed = !task.completed;
+        renderTasksList(tasks);
+    }
+}
 
 
-
-// <li id="1614959131349" class="completed"><div class="todo"><input type="checkbox" class="toggle"><span>3</span><button class="destroy"></button></div><input type="text" class="edit"></li>
-// <li id="1614959131961"><div class="todo"><input type="checkbox" class="toggle"><span>4</span><button class="destroy"></button></div><input type="text" class="edit"></li>
+$taskTable.addEventListener('click', deleteComplete);
