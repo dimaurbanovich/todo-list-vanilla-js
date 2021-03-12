@@ -5,6 +5,10 @@ import { ID } from './utils';
 let $input = document.querySelector('#js-insert');
 let $taskTable = document.querySelector("#js-list");
 let $counter = document.querySelector("#js-total");
+let $clearCompletedBtn = document.querySelector("#js-clear-completed");
+let $filters = document.querySelector("#js-filters");
+
+
 
 let tasks = [ 
     {text: "Buy", completed: false, id: ID()}, 
@@ -89,5 +93,33 @@ function deleteComplete(event) {
     }
 }
 
+function clearCompleted(event) {
+    tasks = tasks.filter(task => !task.completed);
+    renderTasksList(tasks);
+}
+
+function filterTasks(event) {
+   
+    let filteredTasks = tasks;
+    const filterBtn = event.target;
+
+    
+    if(filterBtn.classList.contains('all-btn')) {
+        filterBtn.classList.add('selected')
+        }
+
+    if(filterBtn.classList.contains('active-btn')) {
+        filterBtn.classList.add('selected');
+        filteredTasks = filteredTasks.filter(task => !task.completed);
+        }
+
+    if(filterBtn.classList.contains('completed-btn')) {
+        filterBtn.classList.add('selected');
+        filteredTasks = filteredTasks.filter(task => task.completed);
+        };
+        renderTasksList(filteredTasks); 
+}
 
 $taskTable.addEventListener('click', deleteComplete);
+$clearCompletedBtn.addEventListener('click', clearCompleted);
+$filters.addEventListener('click', filterTasks);
