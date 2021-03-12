@@ -99,21 +99,19 @@ function clearCompleted(event) {
 }
 
 function filterTasks(event) {
-   
+ 
+    const $selectedFilterBtn = document.querySelector('#js-filters .selected');
+    $selectedFilterBtn.classList.remove('selected');
+
     let filteredTasks = tasks;
     const filterBtn = event.target;
-
     
-    if(filterBtn.classList.contains('all-btn')) {
+    if (filterBtn.classList.contains('all-btn')) {
         filterBtn.classList.add('selected')
-        }
-
-    if(filterBtn.classList.contains('active-btn')) {
+        } else if (filterBtn.classList.contains('active-btn')) {
         filterBtn.classList.add('selected');
         filteredTasks = filteredTasks.filter(task => !task.completed);
-        }
-
-    if(filterBtn.classList.contains('completed-btn')) {
+        } else if (filterBtn.classList.contains('completed-btn')) {
         filterBtn.classList.add('selected');
         filteredTasks = filteredTasks.filter(task => task.completed);
         };
