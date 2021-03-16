@@ -5,6 +5,10 @@ import { ID } from './utils';
 let $input = document.querySelector('#js-insert');
 let $taskTable = document.querySelector("#js-list");
 let $counter = document.querySelector("#js-total");
+const $tasksFilter = document.querySelector('#js-filters');
+const $tasksBtnFilter = document.querySelectorAll('#js-filters > li');
+let clearButton = document.querySelector("#js-clear-completed");
+
 
 const inputLocalKey = "text";
 $input.value = localStorage.getItem(inputLocalKey);
@@ -22,11 +26,30 @@ $input.value = localStorage.getItem(inputLocalKey);
 //  );
 
 const keyLSTasks = 'tasks';
+const keyLSFilter = 'selectedFilter'
+
 
 let tasks = localStorage.getItem(keyLSTasks);
+
+if ( tasks === null ) {
+    tasks = [ ];
+} else {
     tasks = JSON.parse(tasks);
+}
 
 // localStorage.setItem('tasks', JSON.stringify(tasks));
+
+const hideCopmletedBtn = (tasks) => {
+    let completedTasks = tasks;
+    
+    completedTasks = completedTasks.filter(task => task.completed);
+    if (completedTasks.length === 0) {
+        clearButton.style.display = "none";
+    } else {
+        clearButton.style.display = "inline-block"
+    }
+}
+
 
 const renderTasksList = (list) => {
     $counter.innerHTML =  `${list.length} items left ` ;
@@ -72,8 +95,8 @@ const renderTasksList = (list) => {
         $taskTable.append(liTask);
         
     });
-
-    localStorage.setItem('tasks', JSON.stringify(list));
+    hideCopmletedBtn(list);
+    localStorage.setItem(keyLSTasks, JSON.stringify(list)); ///////////////////////////////////////
 }
 
 $input.addEventListener('keyup', (event) => {
@@ -86,8 +109,6 @@ $input.addEventListener('keyup', (event) => {
    } 
    localStorage.setItem(inputLocalKey, valueToStore)
 }); 
-
-renderTasksList(tasks);
 
 function deleteComplete(event) {
     const deleteBtn = event.target;
@@ -108,39 +129,65 @@ function deleteComplete(event) {
     }
 }
 
-
 $taskTable.addEventListener('click', deleteComplete);
 
-const $tasksFilter = document.querySelector('#js-filters');
-const $tasksBtnFilter = document.querySelectorAll('#js-filters > li');
-
 $tasksFilter.addEventListener('click', (event) => {
+    
     const targetFilter = event.target;
     const filterType =  targetFilter.dataset.value;
-
-    if (filterType) {
-      $tasksBtnFilter.forEach((filter) => {
-         if (filter.dataset.value === filterType) {
-               filter.classList.add('selected');
-         } else {
-               filter.classList.remove('selected');
-         }
-      })
-
-      let filteredTasks = tasks;
-
-      if (filterType === 'active') {
-         filteredTasks = filteredTasks.filter(task => !task.completed)
-      } else if (filterType === 'completed') {
-         filteredTasks = filteredTasks.filter(task => task.completed)
-      };
-
-      renderTasksList(filteredTasks); 
-   }
     
+    localStorage.setItem(keyLSFilter, filterType);
+
+    saveSelectedFilter(filterType);
+
+//     if (filterType) {
+//       $tasksBtnFilter.forEach((filter) => {
+//          if (filter.dataset.value === filterType) {
+//                filter.classList.add('selected');
+//          } else {
+//                filter.classList.remove('selected');
+//          }
+//       })
+
+//       let filteredTasks = tasks;
+
+//       if (filterType === 'active') {
+//          filteredTasks = filteredTasks.filter(task => !task.completed)
+//       } else if (filterType === 'completed') {
+//          filteredTasks = filteredTasks.filter(task => task.completed)
+//       };
+
+//       renderTasksList(filteredTasks); 
+//    }
 })
 
-let clearButton = document.querySelector("#js-clear-completed");
+const filterType = localStorage.getItem(keyLSFilter);
+
+const saveSelectedFilter = (filterType) => { 
+
+    if (filterType) {
+        $tasksBtnFilter.forEach((filter) => {
+           if (filter.dataset.value === filterType) {
+                 filter.classList.add('selected');
+           } else {
+                 filter.classList.remove('selected');
+           }
+        })
+  
+        let filteredTasks = tasks;
+  
+        if (filterType === 'active') {
+           filteredTasks = filteredTasks.filter(task => !task.completed)
+        } else if (filterType === 'completed') {
+           filteredTasks = filteredTasks.filter(task => task.completed)
+        };
+        
+        renderTasksList(filteredTasks); 
+     }
+}
+
+saveSelectedFilter(filterType);
+
 clearButton.addEventListener("click", () => {
     tasks = tasks.filter(elem => {
         return !elem.completed
@@ -149,3 +196,6 @@ clearButton.addEventListener("click", () => {
     renderTasksList(tasks); 
 });
 
+renderTasksList(tasks);
+
+hideCopmletedBtn(tasks);
