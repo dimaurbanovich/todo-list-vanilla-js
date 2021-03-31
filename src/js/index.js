@@ -1,6 +1,6 @@
 import 'regenerator-runtime/runtime';
 import '../styles/main.css';
-import { getTasksAsync } from './request';
+import { getTasksAsync, getTaskAsync, createTaskAsync, updateTaskAsync, deleteTaskAsync, updateTimeAsync, getDateAsync} from './request';
 import { ID } from './utils';
 
 async function app() {
@@ -11,36 +11,39 @@ async function app() {
     const $tasksBtnFilter = document.querySelectorAll('#js-filters > li');
     let clearButton = document.querySelector("#js-clear-completed");
 
-
     const inputLocalKey = "text";
     const selectedFilterKey = "selectedFilter";
-    $input.value = localStorage.getItem(inputLocalKey);
-    
-    const serverTasks = await getTasksAsync();
-
-    // const convertedList = JSON.stringify(list);
-    // // console.log(JSON.stringify(item));
-
-    // const obj = JSON.parse(text);
-    // console.log(typeof item, item)
-    // console.log(typeof converted, converted)
-    // localStorage.setItem(
-    //     'item', 
-    //     converted
-    //  );
-
     const keyLSTasks = 'tasks';
 
-    let tasks = localStorage.getItem(keyLSTasks);
+    $input.value = localStorage.getItem(inputLocalKey);
+    let lastDateModified  = JSON.parse(localStorage.getItem('time'));
+    console.log(lastDateModified);
 
-    if (tasks === null) {
-        tasks = [];
-    } else {
-        tasks = JSON.parse(tasks);
-    }
+    let localTasks = localStorage.getItem(keyLSTasks);
+    const serverTasks = await getTasksAsync(); 
+    const localDate = await getDateAsync();   
+    console.log(localDate.lastDateModified);
+  
 
+    let tasks = serverTasks
 
-    // localStorage.setItem('tasks', JSON.stringify(tasks));
+    console.log((lastDateModified > localDate.lastDateModified));
+    console.log(lastDateModified)
+    console.log(localDate.lastDateModified)
+
+    if ((lastDateModified > localDate.lastDateModified)) {
+        console.log((lastDateModified > localDate.lastDateModified));
+        tasks = JSON.parse(localTasks);
+        tasks.forEach(task => {
+            createTaskAsync(task);
+        })
+    } 
+    
+    // if (tasks === null) {
+    //     tasks = serverTasks;
+    // } else {
+    //     tasks = JSON.parse(tasks);
+    // }
 
     const renderTasksList = (list) => {
         hideCompletedBtn(tasks);
@@ -80,6 +83,7 @@ async function app() {
                     liTask.classList.remove('editing');
                     task.text = editTask.value
                     renderTasksList(list);
+                    updateTaskAsync(task, task.id);
                 }
             });
 
@@ -89,7 +93,9 @@ async function app() {
         });
 
         localStorage.setItem('tasks', JSON.stringify(tasks));
+        localStorage.setItem('time', JSON.stringify(Date.now()));
     }
+
 
     const hideCompletedBtn = (tasks) => {
         const completedTask = tasks.find(task => task.completed);
@@ -107,12 +113,14 @@ async function app() {
             $input.value = "";
             valueToStore = ""
             renderTasksList(tasks);
+
+            tasks.forEach(task => {
+                createTaskAsync(task);
+            })
         }
         localStorage.setItem(inputLocalKey, valueToStore)
     });
 
-
-    // const filtered = task
     renderTasksList(tasks);
 
     function deleteComplete(event) {
@@ -121,6 +129,7 @@ async function app() {
             const deleteId = deleteBtn.dataset.value;
             tasks = tasks.filter(task => task.id !== deleteId);
             renderTasksList(tasks);
+            deleteTaskAsync(deleteId)
         }
 
         const completeBtn = event.target;
@@ -131,13 +140,13 @@ async function app() {
             });
             task.completed = !task.completed;
             renderTasksList(tasks);
+            tasks.forEach(task => {
+                updateTaskAsync(task, changeId);
+            }) 
         }
     }
 
-
     $taskTable.addEventListener('click', deleteComplete);
-
-
 
     $tasksFilter.addEventListener('click', (event) => {
         const targetFilter = event.target;
@@ -186,10 +195,11 @@ async function app() {
 
     window.onstorage = (ev) => {
         tasks = JSON.parse(ev.newValue);
-        console.log(tasks);
         renderTasksList(tasks);
     }
-}
 
+    updateTimeAsync(Date.now());
+
+}
 
 app();

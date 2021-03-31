@@ -1,4 +1,5 @@
 const TODO_URL = 'http://localhost:3000/todos';
+const TIME_URL = 'http://localhost:3000/info';
 
 export async function getTasksAsync() {
     const response = await fetch(TODO_URL);
@@ -41,7 +42,7 @@ export async function updateTaskAsync(task) {
 }
 
 export async function deleteTaskAsync(id) {
-    const url = `${TODO_URL}/${task.id}`;
+    const url = `${TODO_URL}/${id}`;
     const res = await fetch(url, {
         method: 'DELETE',
     })
@@ -49,30 +50,23 @@ export async function deleteTaskAsync(id) {
     return data;
 }
 
+export async function updateTimeAsync(time) {
+    const options = {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "lastDateModified": time,
+        }),
+    };
+    const response = await fetch(TIME_URL, options);
+    const data = await response.json();
+    return data;
+}
 
-    // const tasks = await getTasksAsync();
-    // console.log('List', tasks)
-
-    // const task = await getTaskAsync(2);
-    // console.log('Single task', task);
-
-    // const createdTask = await createTaskAsync(
-    //     {
-    //         "text": "Created from JS",
-    //         "completed": false,
-    //     }
-    // )
-    // console.log(createdTask);
-
-
-    // const updatedTask = await updateTaskAsync(
-    //     {
-    //         "text": "Updated from JS",
-    //         "completed": true,
-    //         id: 5,
-    //     }
-    // )
-    // console.log('updatedTask', updatedTask);
-
-    // const deleted = await deleteTaskAsync(2);
-    // console.log(delete);
+export async function getDateAsync() {
+    const response = await fetch(TIME_URL);
+    const data = await response.json();
+    return data;
+}
